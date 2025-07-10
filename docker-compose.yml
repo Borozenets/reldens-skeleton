@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: reldensroot
+      MYSQL_DATABASE: reldens_demo
+      MYSQL_USER: reldens
+      MYSQL_PASSWORD: reldens
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - '3306:3306'
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - '8080:8080'
+    environment:
+      # Application settings
+      RELDENS_APP_HOST: 'http://localhost'
+      RELDENS_APP_PORT: '8080'
+      RELDENS_PUBLIC_URL: 'http://localhost:8080'
+      RELDENS_ADMIN_ROUTE_PATH: '/reldens-admin'
+      RELDENS_ADMIN_SECRET: 'my-secret-test-token'
+
+      # Database connection (matches the 'db' service)
+      RELDENS_DB_CLIENT: mysql
+      RELDENS_DB_HOST: db
+      RELDENS_DB_PORT: '3306'
+      RELDENS_DB_NAME: reldens_demo
+      RELDENS_DB_USER: reldens
+      RELDENS_DB_PASSWORD: reldens
+
+      # Bundler and server
+      RELDENS_ALLOW_RUN_BUNDLER: '1'
+      RELDENS_EXPRESS_SERVE_STATICS: '1'
+      RELDENS_EXPRESS_SERVE_HOME: '1'
+
+volumes:
+  db_data:
